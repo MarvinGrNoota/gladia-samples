@@ -14,10 +14,12 @@ import io
 from PIL import Image
 
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 from time import sleep
 from selenium.webdriver.common.by import By
-
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -50,7 +52,7 @@ async def google_sign_in(email, password, driver):
     email_field = driver.find_element(By.NAME, "identifier")
     email_field.send_keys(email)
     # save screenshot
-    driver.save_screenshot('screenshots/email.png')
+    driver.save_screenshot('screenshots/000_email.png')
 
     # Click the Next button
     #next_button = driver.find_element_by_id("identifierNext")
@@ -62,7 +64,7 @@ async def google_sign_in(email, password, driver):
     sleep(3)
 
     # save screenshot
-    driver.save_screenshot('screenshots/password.png')
+    driver.save_screenshot('screenshots/001_password.png')
 
     # Find the password input field and enter the password
     password_field = driver.find_element(By.NAME, "Passwd")
@@ -75,11 +77,30 @@ async def google_sign_in(email, password, driver):
     # Wait for the login process to complete
     sleep(5)
     # save screenshot
-    driver.save_screenshot('screenshots/signed_in.png')
+    driver.save_screenshot('screenshots/002_signed_in.png')
 
+
+def selenium(driver):
+    print("Waiting clickable")
+    element = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.ID, 'c22'))
+    )
+    print("Clickable?")
+    driver.find_element(By.ID, "c22").click()
+    sleep(2)
+    driver.find_element(By.ID, "c22").send_keys("Marvin Wizard")
+    sleep(4)
+    print("Entering password")
+    driver.save_screenshot('screenshots/password_entered.png')
+    # driver.find_element(By.XPATH,
+            # '//*[@id="yDmH0d"]/c-wiz/div/div/div[14]/div[3]/div/div[2]/div[4]/div/div/div[2]/div[1]/div[2]/div[1]/div[1]/button/span').click()
+    driver.find_element(By.CLASS_NAME, ".VfPpkd-vQzf8d").click()
+    sleep(10)
+    driver.save_screenshot('screenshots/joined.png')
+    print("JONED")
 
 async def join_meet():
-    meet_link = os.getenv("GMEET_LINK", 'https://meet.google.com/dau-pztc-yad')
+    meet_link = os.getenv("GMEET_LINK", 'https://meet.google.com/jbx-ycvx-wim')
     print(f"start recorder for {meet_link}")
 
     # delete the folder screenshots if it exists even if not empty
@@ -121,19 +142,9 @@ async def join_meet():
 
     email = os.getenv("GMAIL_USER_EMAIL", "")
     password = os.getenv("GMAIL_USER_PASSWORD", "")
-    gladia_api_key = os.getenv('GLADIA_API_KEY', ''),
     
-    if email == "" or password == "":
-        print("No email or password specified")
-        return
-    
-    if gladia_api_key == "":
-        print("No Gladia API key specified")
-        print("Create one for free at https://app.gladia.io/")
-        return
 
-    print("Google Sign in")
-    await google_sign_in(email, password, driver)
+    # await google_sign_in(email, password, driver)
 
     driver.get(meet_link)
 
@@ -150,9 +161,8 @@ async def join_meet():
                     ]
             },
         )
- 
-    print("screenshot")
-    driver.save_screenshot('screenshots/initial.png')
+    sleep(8)
+    driver.save_screenshot('screenshots/003_initial.png')
     print("Done save initial")
 
     try:
@@ -162,19 +172,20 @@ async def join_meet():
     except:
         print("No popup")
     
+    selenium(driver)
+    return
     # disable microphone
     print("Disable microphone")
 
     sleep(10)
     missing_mic = False
-
     try:
         print("Try to dismiss missing mic")
         driver.find_element(By.CLASS_NAME, "VfPpkd-vQzf8d").find_element(By.XPATH,"..")    
         sleep(2)
         # take screenshot
 
-        driver.save_screenshot('screenshots/missing_mic.png')
+        driver.save_screenshot('screenshots/004_missing_mic.png')
         
         ## save the webpage source html
         with open('screenshots/webpage.html', 'w') as f:
@@ -190,7 +201,7 @@ async def join_meet():
             '/html/body/div/div[3]/div[2]/div/div/div/div/div[2]/div/div[1]/button').click()
         sleep(2)
         # take screenshot
-        driver.save_screenshot('screenshots/allow_microphone.png')
+        driver.save_screenshot('screenshots/005_allow_microphone.png')
         print("Done save allow microphone")
     except:
         print("No Allow Microphone popup")
@@ -206,7 +217,7 @@ async def join_meet():
     
     sleep(2)
     
-    driver.save_screenshot('screenshots/disable_microphone.png')
+    driver.save_screenshot('screenshots/006_disable_microphone.png')
     print("Done save microphone")
 
 
@@ -220,7 +231,7 @@ async def join_meet():
         sleep(2)
     else:
         print("assuming missing mic = missing camera")
-    driver.save_screenshot('screenshots/disable_camera.png')
+    driver.save_screenshot('screenshots/007_disable_camera.png')
     print("Done save camera")
     try:
         driver.find_element(By.XPATH,
@@ -230,18 +241,20 @@ async def join_meet():
         driver.find_element(By.XPATH,
             '//*[@id="yDmH0d"]/c-wiz/div/div/div[14]/div[3]/div/div[2]/div[4]/div/div/div[2]/div[1]/div[1]/div[3]/label/input').send_keys('TEST')
         sleep(2)
-        driver.save_screenshot('screenshots/give_non_registered_name.png')
+        driver.save_screenshot('screenshots/008_give_non_registered_name.png')
 
         print("Done save name")
+        # pressing the join button
         sleep(5)
         driver.find_element(By.XPATH,
             '//*[@id="yDmH0d"]/c-wiz/div/div/div[14]/div[3]/div/div[2]/div[4]/div/div/div[2]/div[1]/div[2]/div[1]/div[1]/button/span').click()
         sleep(5)
     except:
         print("authentification already done")
+        # if previously logged in 
         sleep(5)
         # take screenshot
-        driver.save_screenshot('screenshots/authentification_already_done.png')
+        driver.save_screenshot('screenshots/009_authentification_already_done.png')
         print(driver.title)
         
         driver.find_element(By.XPATH,
@@ -258,7 +271,7 @@ async def join_meet():
     joined = False    
 
     while now < max_time and not joined:
-        driver.save_screenshot('screenshots/joined.png')
+        driver.save_screenshot('screenshots/010_joined.png')
         print("Done save joined")
         sleep(5)    
 
@@ -266,7 +279,7 @@ async def join_meet():
             driver.find_element(By.XPATH,
                             '/html/body/div[1]/div[3]/span/div[2]/div/div/div[2]/div[1]/button').click()
         
-            driver.save_screenshot('screenshots/remove_popup.png')
+            driver.save_screenshot('screenshots/011_remove_popup.png')
             print("Done save popup in meeting")
         except:
             print("No popup in meeting")
@@ -283,7 +296,7 @@ async def join_meet():
                 except:
                     print("Not able to click expand options")
                     
-        driver.save_screenshot('screenshots/expand_options.png')
+        driver.save_screenshot('screenshots/012_expand_options.png')
         
         sleep(2)
         print("Try to move to full screen")
@@ -309,15 +322,15 @@ async def join_meet():
                 else:
                     pass
                 
-        driver.save_screenshot('screenshots/full_screen.png')
+        driver.save_screenshot('screenshots/013_full_screen.png')
         print("Done save full screen")        
 
         
   
-    duration = os.getenv('DURATION_IN_MINUTES', 15)
+    duration = os.getenv('duration_in_minutes', 1)
     duration = int(duration) * 60
     
-    print("Start recording")
+    print("start recording")
     record_command = f'ffmpeg -y -video_size 1920x1080 -framerate 30 -f x11grab -i :99 -f pulse -i default -t {duration} -c:v libx264 -pix_fmt yuv420p -c:a aac -strict experimental recordings/output.mp4'
 
     await asyncio.gather(
@@ -325,50 +338,49 @@ async def join_meet():
     )
 
     print("Done recording")
-    print("Transcribing using Gladia")
 
-    headers = {
-        'x-gladia-key': os.getenv('GLADIA_API_KEY', ''),
-        'accept': 'application/json',
-    }
+    # headers = {
+    #     'x-gladia-key': os.getenv('GLADIA_API_KEY', ''),
+    #     'accept': 'application/json',
+    # }
 
-    file_path = 'recordings/output.mp4' # Change with your file path
+    # file_path = 'recordings/output.mp4' # Change with your file path
 
-    if os.path.exists(file_path): # This is here to check if the file exists
-        print("- File exists")
-    else:
-        print("- File does not exist")
+    # if os.path.exists(file_path): # This is here to check if the file exists
+    #     print("- File exists")
+    # else:
+    #     print("- File does not exist")
 
-    file_name, file_extension = os.path.splitext(file_path) # Get your audio file name + extension
+    # file_name, file_extension = os.path.splitext(file_path) # Get your audio file name + extension
 
-    if str(os.getenv('DIARIZATION')).lower() in ['true', 't', '1', 'yes', 'y', 'oui', 'o']:
-        toggle_diarization = True
-    else:
-        toggle_diarization = False
+    # if str(os.getenv('DIARIZATION')).lower() in ['true', 't', '1', 'yes', 'y', 'oui', 'o']:
+    #     toggle_diarization = True
+    # else:
+    #     toggle_diarization = False
     
-    with open(file_path, 'rb') as f:  # Open the file
-        file_content = f.read()  # Read the content of the file
+    # with open(file_path, 'rb') as f:  # Open the file
+    #     file_content = f.read()  # Read the content of the file
 
-    files = {
-        'video': (file_path, file_content, 'video/'+file_extension[1:]), # Use the file content here
-        'toggle_diarization': (None, toggle_diarization),
-    }
+    # files = {
+    #     'video': (file_path, file_content, 'video/'+file_extension[1:]), # Use the file content here
+    #     'toggle_diarization': (None, toggle_diarization),
+    # }
     
-    print('- Sending request to Gladia API...');
+    # print('- Sending request to Gladia API...');
 
-    response = requests.post('https://api.gladia.io/video/text/video-transcription/', headers=headers, files=files)
-    if response.status_code == 200:
-        print('- Request successful');
-        result = response.json()
-        # save the json response to recordings folder as transcript.json
-        with open('recordings/transcript.json', 'w') as f:
-            f.write(response.text)
-    else:
-        print('- Request failed');
+    # response = requests.post('https://api.gladia.io/video/text/video-transcription/', headers=headers, files=files)
+    # if response.status_code == 200:
+    #     print('- Request successful');
+    #     result = response.json()
+    #     # save the json response to recordings folder as transcript.json
+    #     with open('recordings/transcript.json', 'w') as f:
+    #         f.write(response.text)
+    # else:
+    #     print('- Request failed');
         
-        # save the json response to recordings folder as error.json
-        with open('recordings/error.json', 'w') as f:
-            f.write(response.text)
+    #     # save the json response to recordings folder as error.json
+    #     with open('recordings/error.json', 'w') as f:
+    #         f.write(response.text)
 
     print('- End of work');
 
